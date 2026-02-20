@@ -155,4 +155,3 @@ python dhai4_hdc/train_modern_english.py
 
 ---
 **Author**: Animesh Ratna
-**Context**: "Zero to Quant Hero" - Pillar III Research Thesis
