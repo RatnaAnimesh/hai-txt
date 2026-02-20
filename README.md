@@ -48,23 +48,30 @@ This leads to "Fluent Incoherence," where models memorize local transition proba
 
 To resolve the combinatorial explosion natively, DHAI-4 maps the generative model into a massive Vector Symbolic Architecture (VSA). 
 
-We define a vector space of dimension $d = 10,000$. The substrate consists of bipolar vectors:
+We define a high-dimensional vector space over the real manifold $\mathbb{R}^d$ where $d = 10,000$. To optimize computational tractability while preserving geometric distance metrics, the substrate is quantized into a bipolar hypercube with the uniform probability measure $\mu$:
 
 $$
-V \in \{-1, +1\}^d
+V \in \{-1, +1\}^d, \quad \mu(V_i = 1) = 0.5
 $$
 
-### 3.1 Concentration of Measure
+### 3.1 Concentration of Measure (The Topology of HDC)
 
-In vastly high-dimensional spaces, the volume of a hypersphere concentrates heavily near its equator relative to any arbitrary pole. Consequently, any two randomly generated bipolar vectors are mathematically guaranteed to be orthogonal (dissimilar).
+In vastly high-dimensional measurable spaces, the volume of a hypersphere concentrates almost entirely near its equator relative to any arbitrary pole—a phenomenon driven by the geometry of Borel sets in $\mathbb{R}^d$. Consequently, any two randomly generated bipolar vectors are mathematically guaranteed to be nearly orthogonal (dissimilar).
 
-Let $x, y \sim \mathcal{U}(\{-1, +1\}^d)$. The Cosine Similarity is equivalent to the normalized Dot Product:
+Let $x, y \sim \mathcal{U}(\{-1, +1\}^d)$ be independent random vectors. The Cosine Similarity is equivalent to the normalized Dot Product:
 
 $$
 \text{Sim}(x, y) = \frac{x \cdot y}{d} = \frac{1}{d} \sum_{i=1}^d x_i y_i
 $$
 
-By the Law of Large Numbers, $\mathbb{E}[\text{Sim}(x, y)] = 0$.
+By the Law of Large Numbers, the expected value $\mathbb{E}[\text{Sim}(x, y)] = 0$. 
+Crucially, the variance is tightly bound at $\sigma^2 = \frac{1}{d}$. Applying Chebyshev's Inequality, the probability of two vectors randomly exhibiting a similarity $\ge \epsilon$ decays exponentially with $d$:
+
+$$
+P(|\text{Sim}(x,y)| \ge \epsilon) \le \frac{1}{d \epsilon^2}
+$$
+
+Thus, at $d=10,000$, orthogonality is essentially a deterministic guarantee, allowing the vector space to act as a nearly infinite, collision-free hash table.
 
 ### 3.2 The Algebraic Operations
 
@@ -219,9 +226,15 @@ By performing a recursive tree search simulating multiple sequential bundles und
 
 ## 5. Bayesian Model Reduction (Combating the Superposition Catastrophe)
 
-The major limitation of HDC mathematics is the capacity bound. Bundling $K$ vectors natively injects noise. If $K$ exceeds the theoretical limit (usually dependent on $d$), the resulting vector collapses into pure white noise, and $\text{Sim}$ evaluations fail. This is the **Superposition Catastrophe**.
+The major limitation of HDC mathematics is the capacity bound of the Bundling operator ($+$). Bundling $K$ vectors natively injects cumulative binomial noise. Mathematical capacity theory dictates that the signal-to-noise ratio drops with $\sqrt{K}$.
 
-To achieve infinite streaming capability (as demonstrated in `[train_modern_english.py]`), DHAI-4 integrates **Bayesian Model Reduction (BMR)**, implemented as a `Sleep/Consolidation Phase`.
+If $K$ exceeds the theoretical limit $K_{max}$ (which remains strictly bounded by the dimensionality $d$ even in HDC space), the resulting bundled vector collapses into pure Gaussian white noise. At this point, $\text{Sim}$ evaluations fail universally. This limit is the **Superposition Catastrophe**.
+
+$$
+K_{max} \approx \frac{d}{2 \ln(d)}
+$$
+
+To achieve infinite streaming capability (as demonstrated in `[train_modern_english.py]`) without triggering $K_{max}$, DHAI-4 integrates **Bayesian Model Reduction (BMR)**, implemented dynamically as a `Sleep/Consolidation Phase`.
 
 The generative model periodically iterates over its stored Hebbian transition matrices $\mathbf{\Gamma}$. It applies an iterative hard-thresholding operation relative to an active epistemic pruning parameter $\psi$:
 
