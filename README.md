@@ -137,6 +137,24 @@ $$
 S_0 = R_{\text{SUBJ}} \otimes F_{\text{cat}}
 $$
 
+**Unsupervised Role Bootstrapping (Dynamic Grammar Discovery):**
+
+In the advanced DHAI-4 architecture, these functional roles are not hardcoded. The system mathematically derives its own syntax by clustering semantic fillers based on their adjacent topographical sequences using the Permutation operator $\rho$. 
+
+When word $w_{\tau}$ is observed, its temporal "context" is defined as the permuted vector of the preceding word:
+
+$$
+C(w_\tau) = \rho(F_{\tau-1})
+$$
+
+Over time, the system maintains a historical context bundle $\mathbf{B}_{ctx}(w)$ for every vocabulary token. To assign a syntactic Role $R_k$ to a novel word, it evaluates the cosine similarity between the word's accumulated topological context and the centroids of all currently discovered Role clusters:
+
+$$
+k^* = \arg\max_{k \in \mathcal{K}} \text{Sim}( \mathbf{B}_{ctx}(w_\tau), \mu(R_k) )
+$$
+
+If $\max(\text{Sim}) < \lambda_{role}$ (a novelty hyperparameter), the system dynamically provisions a radically orthogonal new Role vector, effectively bootstrapping a new grammatical category uniquely native to the VSA geometry.
+
 **Transition Updating:**
 
 Instead of a $|V| \times |V|$ dense Markov matrix, transitioning from state $S_{\tau-1}$ to $S_{\tau}$ is tracked via a sparse Hebbian graph mapping geometric neighborhoods.
@@ -181,7 +199,21 @@ $$
 G(A_k) \approx - \text{Sim}(F_k, G^*)
 $$
 
-By performing a recursive tree search simulating multiple sequential bundles, the agent evaluates the topological proximity of distant sequential actions exclusively through geometric overlap.
+**Epistemic Pruning (Active Subspace Filtering):**
+
+In Deep Tree Search, the combinatorial branching factor $b^d$ remains a threat even in $10,000$-dimensional space. To constrain the search tree, DHAI-4 implements an Epistemic Pruning heuristic derived directly from the active inference formulation of Epistemic Value: $\mathbb{E}_{\tilde{Q}} [H(P(o_\tau | s_\tau))]$.
+
+The Information Entropy ($H$) of exploring a specific branch $A_k$ in VSA space is inversely proportional to the variance of its prior binding associations in the Hebbian transition graph $\mathbf{\Gamma}$. If tracing $F_k$ leads to a subspace densely populated with homogenous historical bindings, the Epistemic Value is minimal. If $F_k$ projects into a sparse, highly orthogonal subspace, the Epistemic Value peaks. 
+
+During tree traversal, the agent continuously evaluates:
+
+$$
+\mathcal{E}(A_k) = 1 - \frac{1}{|\mathcal{N}(F_k)|} \sum_{v \in \mathcal{N}(F_k)} \text{Sim}(F_k, v)
+$$
+
+Where $\mathcal{N}(F_k)$ defines the local $k$-nearest neighbor manifold in the permanent associative memory. Subtrees where $\mathcal{E}(A_k) < \theta_{prune}$ are dynamically aborted, focusing all computational bandwidth strictly on branches possessing high Pragmatic proximity to the Goal $G^*$ or high Epistemic uncertainty.
+
+By performing a recursive tree search simulating multiple sequential bundles under this epistemic constraint, the agent evaluates the topological proximity of distant sequential actions exclusively through geometric overlap in sub-linear time.
 
 ---
 
