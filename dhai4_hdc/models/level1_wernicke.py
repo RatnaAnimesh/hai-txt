@@ -10,6 +10,12 @@ class HDC_EventProcessor:
         self.hd_space = get_hd_space(dimension)
         self.sim_threshold = sim_threshold
         
+        # Macroscopic Event Transition Memory (Dirichlet Priors / Hebbian Graph)
+        self.transition_counts = {}
+        
+    def _vec_key(self, vec: np.ndarray) -> bytes:
+        return vec.tobytes()
+        
     def process_stream(self, vector_sequence: list[np.ndarray]) -> list[np.ndarray]:
         """
         Chunks a stream of item vectors into macroscopic 'Events' (Bundles).
@@ -37,9 +43,20 @@ class HDC_EventProcessor:
                 
                 # 2. Start a new event chunk
                 current_chunk = [curr_vec]
+                prev_bundle = current_bundle
                 current_bundle = curr_vec
+                
+                # 3. Learn macroscopic transition
+                p_key = self._vec_key(prev_bundle)
+                c_key = self._vec_key(current_bundle)
+                if p_key not in self.transition_counts:
+                    self.transition_counts[p_key] = {}
+                if c_key not in self.transition_counts[p_key]:
+                    self.transition_counts[p_key][c_key] = 0
+                self.transition_counts[p_key][c_key] += 1
+                
             else:
-                # 3. Add to chunk and update bundle
+                # 4. Add to chunk and update bundle
                 current_chunk.append(curr_vec)
                 current_bundle = self.hd_space.bundle(current_chunk)
                 

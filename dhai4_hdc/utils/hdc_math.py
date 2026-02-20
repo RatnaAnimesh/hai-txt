@@ -78,7 +78,8 @@ class HDSpace:
         # Dot product divided by magnitudes.
         # Since vectors are +1/-1, magnitude is always sqrt(d)
         # So dot product / d is the exact cosine similarity.
-        dot_product = np.dot(v1, v2)
+        # MUST cast to int32 before dotting, otherwise 10000 overflows int8 bounds limit (127).
+        dot_product = np.dot(v1.astype(np.int32), v2.astype(np.int32))
         return float(dot_product) / len(v1)
 
 # Singleton helper
