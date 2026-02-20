@@ -1,116 +1,150 @@
-# DHAI-4: Deep Hierarchical Active Inference (HDC Pivot)
+# DHAI-4: Deep Hierarchical Active Inference via Hyperdimensional Computing
 
-DHAI-4 is an experimental Artificial General Intelligence (AGI) architecture that completely abandons connectionist neural networks (e.g., Transformers, Backpropagation). Instead, it implements **Language-Mediated Active Inference** using the pure, deterministic linear algebra of **Hyperdimensional Computing (HDC) / Vector Symbolic Architectures (VSA)**.
-
-This repository demonstrates how to build a model that natively grows semantic and syntactic structures from streaming raw Wikipedia text without a single learned matrix weight, scalar parameter explosion, or GPU optimization loop.
+**Abstract:** *This paper introduces the theoretical and architectural foundations of DHAI-4 (Deep Hierarchical Active Inference 4), an Artificial General Intelligence (AGI) framework designed to perform language-mediated Sophisticated Inference. We detail the mathematical pivot from continuous connectionist models (e.g., Transformers, Backpropagation) and discrete integer-based Partially Observable Markov Decision Processes (POMDPs) into the strict deterministic linear algebra of Vector Symbolic Architectures (VSAs) operating in a $d=10,000$ geometric space. We demonstrate how this mapping naturally supports native syntactic factorization, zero-shot topological generalization, and mathematically tractable calculations of Expected Free Energy without parameter explosion or "black-box" optimization loops.*
 
 ---
 
-## 1. The Core Problem: The "Black Box" & Parameter Explosion
-Modern Large Language Models (LLMs) learn by iteratively adjusting continuous gradients over billions of parameters, resulting in an uninterpretable "black box" latent space. 
+## 1. Introduction: The Free Energy Principle
 
-Earlier iterations of DHAI attempted to solve this by forcing the model to use purely discrete, observable integer states (classic Active Inference). However, representing the vast combinatorial scope of human language using strictly discrete integers leads to an $\mathcal{O}(N^2)$ combinatorial explosion in the transition matrices, causing the models to fail at generalizing past initial training sets (a failure state known as "Fluent Incoherence").
+The core of the DHAI framework relies on the **Free Energy Principle (FEP)**, which posits that self-organizing systems must minimize Variational Free Energy (an upper bound on surprise) to resist entropic decay. 
 
-DHAI-4 solves this by pivoting the discrete mathematical substrate into a high-dimensional geometric space.
+In a discrete time process, an agent exists in an environment governed by hidden states $s$, producing observations $o$. Formally, this is modeled as a POMDP defined by:
+- $P(o_\tau | s_\tau)$: The likelihood matrix (Generation).
+- $P(s_{\tau} | s_{\tau-1}, \pi)$: The transition matrix (Dynamics under policy $\pi$).
+- $P(s_0)$: Prior belief over initial states.
+
+The agent maintains an approximate posterior belief $Q(s)$ over hidden states. Perception and action are cast as a single imperative: minimizing **Variational Free Energy ($F$)**, bounding the surprise $-\ln P(o)$.
+
+$$ F = D_{KL}[Q(s) \parallel P(s)] - \mathbb{E}_{Q}[\ln P(o|s)] $$
+
+Where $D_{KL}$ is the Kullback-Leibler divergence. For planning into the future ($\tau > t$), the agent evaluates policies ($\pi$) by minimizing **Expected Free Energy ($G$)**:
+
+$$ G(\pi, \tau) = \mathbb{E}_{\tilde{Q}} [ \ln Q(s_\tau | \pi) - \ln P(s_\tau, o_\tau | \pi) ] $$
+$$ G(\pi, \tau) \approx \underbrace{- \mathbb{E}_{\tilde{Q}} [\ln P(o_\tau)]}_{\text{Pragmatic Value (Goal Proximity)}} + \underbrace{\mathbb{E}_{\tilde{Q}} [H(P(o_\tau | s_\tau))]}_{\text{Epistemic Value (Ambiguity)}} $$
 
 ---
 
-## 2. Foundational Mathematics: Native Semantic Geometry
+## 2. The Combinatorial Catastrophe of Discrete POMDPs
 
-Hyperdimensional Computing operates on the mathematical principle of concentration of measure in vastly high-dimensional spaces. We construct a vector space of dimension $d = 10,000$. 
+Attempting to scale classic Active Inference to the domain of natural language fundamentally breaks because integer-based POMDP matrices suffer $\mathcal{O}(|S|^2)$ or worse dimensional scaling.
 
-The model relies on vectors whose components are strictly bipolar:
+If a language agent has a vocabulary of $|V| = 50,000$ words:
+1.  **State Space Explosion**: Defining states as strictly discrete integers means the transition matrix $P(s_t | s_{t-1})$ requires $|V| \times |V| = 2.5 \times 10^9$ discrete scalar probabilities.
+2.  **Lack of Topological Similarity**: Discrete integers possess no innate geometry (state $1$ "Dog" and state $2$ "Cat" are as mathematically distant as state $1$ and state $50,000$ "Carburetor"). To generalize, the model must explicitly observe and iterate a continuous probability gradient linking them.
+
+This leads to "Fluent Incoherence," where models memorize local transition probabilities but immediately fail at compositional generalization. The solution is escaping integer Markov chains by mapping the state space into a dense geometry.
+
+---
+
+## 3. Hyperdimensional Computing (HDC) & VSA Algebra
+
+To resolve the combinatorial explosion natively, DHAI-4 maps the generative model into a massive Vector Symbolic Architecture (VSA). 
+
+We define a vector space of dimension $d = 10,000$. The substrate consists of bipolar vectors:
 $$ V \in \{-1, +1\}^d $$
 
-Because $d$ is immense, any two randomly generated vectors are overwhelmingly likely to be mathematically orthogonal (dissimilar). The core mathematics does not rely on optimization, but on four deterministic algebraic operations: Generation, Binding, Bundling, and Permutation.
+### 3.1 Concentration of Measure
+In vastly high-dimensional spaces, the volume of a hypersphere concentrates heavily near its equator relative to any arbitrary pole. Consequently, any two randomly generated bipolar vectors are mathematically guaranteed to be orthogonal (dissimilar).
 
-### 2.1 The Vocabulary: Atomic Generation
-When the system encounters a novel concept (e.g., the word "Cat"), it does *not* train an embedding using Word2Vec or Transformers. It simply generates a completely random $10,000$-dimensional vector of $+1$s and $-1$s.
+Let $x, y \sim \mathcal{U}(\{-1, +1\}^d)$. The Cosine Similarity is equivalent to the normalized Dot Product:
+$$ \text{Sim}(x, y) = \frac{x \cdot y}{d} = \frac{1}{d} \sum_{i=1}^d x_i y_i $$
+By the Law of Large Numbers, $\mathbb{E}[\text{Sim}(x, y)] = 0$.
 
-$$ V_{\text{cat}} \sim \mathcal{U}\left(\{-1, +1\}^{10000}\right) $$
-$$ V_{\text{dog}} \sim \mathcal{U}\left(\{-1, +1\}^{10000}\right) $$
+### 3.2 The Algebraic Operations
+DHAI-4 uses three deterministic operations over this geometry.
 
-We measure distance using **Cosine Similarity**, which in a bipolar space is an exact, computationally cheap translation of the Hamming Distance:
+**1. Generation / Item Memory:** 
+An atomic concept (e.g., a word) is assigned a pure random vector.
+$$ V_{\text{dog}} = \text{generate}(\{-1, +1\}^d) $$
 
-$$ \text{Sim}(V_A, V_B) = \frac{V_A \cdot V_B}{d} $$
+**2. Binding ($\otimes$):**
+Element-wise multiplication (Hadamard product). Used for Structural Factorization (variable assignment).
+$$ V_{\text{bound}} = x \otimes y $$
+*Geometrical Property:* $V_{\text{bound}}$ is perfectly orthogonal to both $x$ and $y$. 
+$$ \text{Sim}(x \otimes y, x) \approx 0 $$
 
-Because the space is random and $d=10,000$, the expected dot product of any two random vectors evaluates to approximately zero.
-$$ \text{Sim}(V_{\text{cat}}, V_{\text{dog}}) \approx 0 $$
+**3. Bundling ($+$):**
+Element-wise addition followed by a signum threshold function. Used to create macroscopic Sets or semantic contexts.
+$$ S = x + y + z $$
+$$ V_{\text{bundled}} = \text{sgn}(S) $$
+*(Where $\text{sgn}(0)$ is resolved via a coin flip).*
+*Geometrical Property:* The bundle retains high similarity to all constituent vectors.
+$$ \text{Sim}(V_{\text{bundled}}, x) \gg 0 $$
 
-### 2.2 Structural Factorization: Binding ($\otimes$)
-To learn grammatical rules without parameter explosion (The "Chomsky Fix"), we must decouple the *structural role* of a word from its *semantic meaning*. We achieve this via the **Binding** operator. 
-
-Binding acts as variable assignment: $\text{Role} \times \text{Filler}$. Mathematically, this is the element-wise multiplication of the two vectors (computationally equivalent to an `XOR` gate on binary hardware).
-
-$$ V_{\text{bound}} = V_{\text{role\_subject}} \otimes V_{\text{filler\_cat}} $$
-
-**The Crucial Geometric Property**: The resulting bound vector $V_{\text{bound}}$ is perfectly orthogonal to *both* of its parent vectors.
-$$ \text{Sim}(V_{\text{bound}}, V_{\text{role\_subject}}) \approx 0 \quad \text{and} \quad \text{Sim}(V_{\text{bound}}, V_{\text{filler\_cat}}) \approx 0 $$
-This creates a fundamentally unique state in the state-space that perfectly encodes structure, without increasing the overall dimensionality of the system.
-
-### 2.3 Semantic Clustering: Bundling ($+$)
-To aggregate multiple concepts into macroscopic "Events" or sets, we use the **Bundling** operator. This is the element-wise addition of multiple vectors, followed by a non-linear thresholding function (the signum function) to compress the magnitude back into the strict bipolar $\{-1, +1\}$ space.
-
-$$ S = V_A + V_B + V_C $$
-$$ V_{\text{bundle}} = \text{sgn}(S) $$
-*(Where $\text{sgn}(0)$ is resolved via a random coin flip to break ties).*
-
-**The Crucial Geometric Property**: Unlike Binding, a Bundled vector is geometrically highly similar to all of its constituent input vectors.
-$$ \text{Sim}(V_{\text{bundle}}, V_A) \gg 0 $$
-
-This mathematical property produces **Zero-Shot Generalization**. If the model records a transition rule for $V_{\text{bundle}}$, and later evaluates a novel context that is geometrically similar to the bundle, the dot product will naturally fire and apply the learned rules without ever executing backpropagation.
-
-### 2.4 Sequence and Time: Permutation ($\rho$)
-To differentiate sequences (e.g., distinguishing "The Cat" from "Cat The"), we apply a **Permutation** operator. The simplest functioning permutation is a cyclical shift of the vector coordinates by 1 offset.
-
-$$ V_{\text{time}} = \rho(V_{\text{The}}) $$
-$$ \text{Sim}(\rho(V_{\text{The}}), V_{\text{The}}) \approx 0 $$
-By cyclically shifting vectors before binding or bundling them, we structurally embed the concept of Time into the static geometry.
+**4. Permutation ($\rho$):**
+A cyclical coordinate shift by 1 position. Used to encode sequence without commutativity.
+$$ V_{\text{seq}} = \rho(x) $$
+*Geometrical Property:* $\text{Sim}(\rho(x), x) \approx 0$.
 
 ---
 
-## 3. The Architecture: Hierarchical VSA Processing
+## 4. Architectural Implementation in DHAI-4
 
-The DHAI-4 repository maps the HDC algebra directly into a simulated 3-layer brain hierarchy.
+We construct a 3-tier hierarchy that maps active inference onto the VSA algebra.
 
-### Level 0: The Sensory Interface (Broca's Area)
-**File**: `models/level0_broca.py`
-- **Mechanism**: Raw text strings are ingested. Words are converted to atomic vectors and **Bound** ($\otimes$) to their syntactic Roles. 
-- **Learning**: The system bypasses gradient descent in favor of **Geometric Hebbian Learning**. When state $A$ transitions to state $B$, the system just records $\text{count}(A \to B) \mathrel{+}= 1$. Native geometric similarity handles the generalization mapping during inference.
+### Level 0: The Sensory Interface (Broca / Syntactic Binding)
+Modern LLMs conflate syntax and semantics into the same continuous embeddings. Level 0 strictly enforces **Structural Factorization**.
 
-### Level 1: The Event Processor (Wernicke's Area)
-**File**: `models/level1_wernicke.py`
-- **Mechanism (Fast Structure Learning)**: The system computes continuous **Bundles** ($+$) of the incoming token stream. 
-- **Chunking**: It actively monitors the Cosine Similarity between the newest token and the current rolling Bundle. If $\text{Sim}(V_{\text{new}}, V_{\text{context}}) < \text{Threshold}$, the architecture assumes a linguistic boundary has been crossed, finalizes the macroscopic "Event", and starts a new bundle.
+We define permanent, orthogonal functional roles: $R_{\text{SUBJ}}, R_{\text{VERB}}, R_{\text{OBJ}}$. 
+When the system senses a word vector $F_{\text{cat}}$ (the Filler), it binds it to the current role:
+$$ S_0 = R_{\text{SUBJ}} \otimes F_{\text{cat}} $$
 
-### Level 2: The Narrative Planner (Frontal Cortex)
-**File**: `models/level2_frontal.py`
-- **Mechanism (Sophisticated Inference)**: Active Inference requires the model to plan actions that minimize Variational Free Energy. 
-- **Deep Tree Search**: The planner does not blindly guess the next token. It computes an $N$-step recursive tree search. For every candidate action, it simulates the `Virtual Future = Bundle(Current Belief, Proposed Action)`.
-- **Expected Free Energy (EFE)**: EFE is computed as the strict Cosine Distance from the `Virtual Future` vector to the `Goal` vector over the simulated horizon.
+**Transition Updating:**
+Instead of a $|V| \times |V|$ dense Markov matrix, transitioning from state $S_{\tau-1}$ to $S_{\tau}$ is tracked via a sparse Hebbian graph mapping geometric neighborhoods.
+$$ \mathbf{\Gamma}(S_{\tau-1} \to S_{\tau}) \mathrel{+}= 1 $$
+Because $S$ is composed of bundled similar vectors, any future input evaluating $\text{Sim}(S_{\text{novel}}, S_{\tau-1}) > \epsilon$ natively triggers the transition pathway. Zero-shot generalization is mathematically guaranteed by the geometry.
+
+### Level 1: Renormalizing Event Processor (Wernicke)
+Level 1 continuously bundles the Level 0 sequence vector to track the macroscopic 'context' of a sentence.
+$$ B_\tau = \text{sgn}\left( \sum_{t=0}^\tau \rho^{\tau-t}(S_t) \right) $$
+
+**Fast Structure Learning (Event Chunking):**
+The model boundary-detects by tracking the differential similarity of the incoming token against the running bundle.
+$$ \Delta_{\text{Sim}} = \text{Sim}(S_\tau, B_{\tau-1}) $$
+If $\Delta_{\text{Sim}} < \kappa$ (a hard hyperparameter threshold), the system concludes a structural sentence boundary has been crossed, finalizes $B_{\tau-1}$ as a macroscopic `Event Vector`, and flushes the vector tracker.
+
+### Level 2: Sophisticated Inference (Frontal Cortex)
+Level 2 observes the macroscopic `Event Vectors` and performs **Deep Tree Search** to minimize Expected Free Energy ($G$).
+
+Instead of continuous gradients, planning in VSA is purely algebraic simulation. Given a current belief $B_0$ and a set of candidate policy Actions $\{A_1, A_2 ... A_k\}$, the system calculates the Virtual Future $F$:
+$$ F_{k} = \text{sgn}(B_0 + A_k) $$
+
+The Expected Free Energy $G(\pi)$ mapping to the Goal Vector $G^*$ simplifies completely to inverse cosine distance:
+$$ G(A_k) \approx - \text{Sim}(F_k, G^*) $$
+
+By performing a recursive tree search simulating multiple sequential bundles, the agent evaluates the topological proximity of distant sequential actions exclusively through geometric overlap.
 
 ---
 
-## 4. Addressing Mathematical Limits: Sleep Consolidation
+## 5. Bayesian Model Reduction (Combating the Superposition Catastrophe)
 
-Vector Symbolic Architectures are subject to the **Superposition Catastrophe**: bundling too many vectors together eventually collapses the vector into orthogonal noise, destroying the capacity to retrieve constituent elements.
+The major limitation of HDC mathematics is the capacity bound. Bundling $K$ vectors natively injects noise. If $K$ exceeds the theoretical limit (usually dependent on $d$), the resulting vector collapses into pure white noise, and $\text{Sim}$ evaluations fail. This is the **Superposition Catastrophe**.
 
-To counteract this, Level 0 utilizes **Bayesian Model Reduction (Sleep Phase)**. 
-During offline intervals between training batches, the `sleep_cycle()` method iterates over the Hebbian transition graph and enforces sparsity. It prunes weak connections iteratively, orthogonalizing the semantic representations to reclaim memory capacity mathematically without needing additional hard drive storage.
+To achieve infinite streaming capability (as demonstrated in `[train_modern_english.py]`), DHAI-4 integrates **Bayesian Model Reduction (BMR)**, implemented as a `Sleep/Consolidation Phase`.
+
+The generative model periodically iterates over its stored Hebbian transition matrices $\mathbf{\Gamma}$. It applies an iterative hard-thresholding operation relative to an active epistemic pruning parameter $\psi$:
+$$ \forall (\alpha \to \beta) \in \mathbf{\Gamma}: \text{if } \text{count}(\alpha \to \beta) < \psi, \text{prune}(\alpha \to \beta) $$
+
+This offline "sleep" operation structurally orthogonalizes the semantic graph, removing superimposed stochastic noise caused by single-occurrence edge-cases in the Wikipedia stream, thereby averting mathematical collapse and reclaiming infinite dimensionality.
 
 ---
 
-## 5. Usage: Infinite Modern English Streaming
+## 6. Execution & Installation
 
-The repository features an infinite streaming trainer that queries the Wikipedia API. It pulls random articles, processes them through Levels 0, 1, and 2 to build the geometric graphs, and instantly discards the raw text.
+The DHAI-4 repository operates entirely sequentially via zero-budget local compute, eschewing all backpropagation hardware. 
 
-To run the pipeline and watch the model build natively structured semantic spaces:
+To observe the architecture constructing syntactic and semantic VSA matrices natively while streaming random modern Wikipedia articles:
 
 ```bash
-# 1. Clone the repository
+# Clone the foundational architecture
 git clone https://github.com/RatnaAnimesh/hai-txt.git
 cd hai-txt
 
-# 2. Run the infinite streaming loop
+# Execute infinite Modern English HDC training
 python dhai4_hdc/train_modern_english.py
 ```
+*Observe the system parsing string bytes $\to$ generating $d=10,000$ matrices $\to$ calculating orthogonal bindings $\to$ executing Bayesian sleep cycles.*
+
+---
+**Author**: Animesh Ratna
+**Context**: "Zero to Quant Hero" - Pillar III Research Thesis
