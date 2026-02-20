@@ -18,6 +18,10 @@ class HDC_SensoryInterface:
         
         # Semantic Graph (B_semantic): sparse counts of bound concepts
         self.transition_counts = {}
+        
+        # Decoding Map: Maps bound vector bytes -> original raw word 
+        # (Required for the model to "speak" conceptually)
+        self.bound_to_word = {}
 
     def _vec_key(self, vec: np.ndarray) -> bytes:
         return vec.tobytes()
@@ -84,6 +88,9 @@ class HDC_SensoryInterface:
         # The resulting vector is perfectly orthogonal to both Role and Filler
         bound_state = self.hd_space.bind(role_vec, filler_vec)
         
+        # Store decoding map
+        self.bound_to_word[self._vec_key(bound_state)] = word
+        
         return {
             "bound_state": bound_state,
             "filler": filler_vec,
@@ -125,3 +132,40 @@ class HDC_SensoryInterface:
         
         return nodes_before - nodes_after
 
+        return nodes_before - nodes_after
+
+    def generate_sentence(self, max_length=15) -> str:
+        """
+        Generates a sentence by performing a weighted random walk over the learned
+        geometric transition graph. Decodes the bound vectors back into raw words.
+        """
+        if not self.transition_counts:
+            return ""
+            
+        # Start random walk at a random known vector
+        current_key = np.random.choice(list(self.transition_counts.keys()))
+        sentence = [self.bound_to_word.get(current_key, "<UNK>")]
+        
+        for _ in range(max_length - 1):
+            if current_key not in self.transition_counts or not self.transition_counts[current_key]:
+                break # Reached a dead end geometrically
+                
+            transitions = self.transition_counts[current_key]
+            next_keys = list(transitions.keys())
+            counts = list(transitions.values())
+            
+            # Weighted probability based on learned Hebbian counts
+            probabilities = np.array(counts, dtype=np.float32) / sum(counts)
+            
+            next_key = np.random.choice(next_keys, p=probabilities)
+            word = self.bound_to_word.get(next_key, "<UNK>")
+            sentence.append(word)
+            current_key = next_key
+            
+            if word in {".", "!", "?"}: # Sentence bounded
+                break
+                
+        # Clean up punctuation spacing natively
+        text = " ".join(sentence)
+        text = text.replace(" .", ".").replace(" ,", ",").replace(" !", "!").replace(" ?", "?").replace(" '", "'")
+        return text

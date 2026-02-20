@@ -46,13 +46,13 @@ def train_on_modern_english():
     total_events_chunked = 0
     batch_count = 0
     
-    target_batches = 5 # Run an example few batches to prove it works before infinite loop
+    target_batches = float('inf') # Run infinitely as requested
     
-    print("\n--- Commencing Streaming Training ---")
+    print("\n--- Commencing Infinite Streaming Training ---")
     start_time = time.time()
     
     try:
-        while batch_count < target_batches:
+        while True:
             batch_count += 1
             print(f"\n[Batch {batch_count}] Fetching random modern English articles...")
             articles = fetch_random_wikipedia_articles(limit=10)
@@ -104,7 +104,13 @@ def train_on_modern_english():
             # --- Bayesian Model Reduction (Sleep / Consolidation Phase) ---
             print("  -> Entering Sleep Phase (Consolidating Memory)...")
             pruned_nodes = broca.sleep_cycle(prune_threshold=2)
-            print(f"  -> Waking Up. Pruned {pruned_nodes} weak geometric geometric transitions. Reclaimed capacity.")
+            print(f"  -> Waking Up. Pruned {pruned_nodes} weak geometric transitions. Reclaimed capacity.")
+            
+            print("\n  [+] DHAI-4 Dreams (Sentence Generation from Geometric Context):")
+            for _ in range(3):
+                dream = broca.generate_sentence()
+                print(f"      \"{dream}\"")
+            print("-" * 50)
 
     except KeyboardInterrupt:
         print("\n[!] Training interrupted by user.")
