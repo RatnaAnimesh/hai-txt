@@ -112,7 +112,7 @@ class HDC_SensoryInterface:
             
         self.transition_counts[p_key][c_key] += 1
 
-    def sleep_cycle(self, prune_threshold: int = 2) -> int:
+    def sleep_cycle(self, prune_threshold: int = 1, force_prune_rate: float = 0.05) -> int:
         """
         Bayesian Model Reduction (Sleep / Consolidation).
         Prunes weak geometric connections (Hebbian counts below threshold),
@@ -123,7 +123,16 @@ class HDC_SensoryInterface:
         nodes_before = sum(len(transitions) for transitions in self.transition_counts.values())
         
         for p_key, transitions in self.transition_counts.items():
-            strong_transitions = {k: v for k, v in transitions.items() if v >= prune_threshold}
+            strong_transitions = {}
+            for k, v in transitions.items():
+                if v > prune_threshold:
+                    strong_transitions[k] = v
+                elif v == prune_threshold:
+                    # Probabilistic pruning for things that just met the threshold, 
+                    # ensuring some N-grams survive to link longer geometries.
+                    if np.random.random() > force_prune_rate:
+                        strong_transitions[k] = v
+                        
             if strong_transitions:
                 pruned_graph[p_key] = strong_transitions
                 
@@ -134,10 +143,11 @@ class HDC_SensoryInterface:
 
         return nodes_before - nodes_after
 
-    def generate_sentence(self, max_length=15) -> str:
+    def generate_sentence(self, max_length=20, temperature=1.5) -> str:
         """
         Generates a sentence by performing a weighted random walk over the learned
         geometric transition graph. Decodes the bound vectors back into raw words.
+        Temperature encourages exploring slightly less frequent connections to build longer sentences.
         """
         if not self.transition_counts:
             return ""
@@ -154,8 +164,9 @@ class HDC_SensoryInterface:
             next_keys = list(transitions.keys())
             counts = list(transitions.values())
             
-            # Weighted probability based on learned Hebbian counts
-            probabilities = np.array(counts, dtype=np.float32) / sum(counts)
+            # Weighted probability based on learned Hebbian counts modified by temperature
+            adjusted_counts = np.array(counts, dtype=np.float32) ** (1.0 / temperature)
+            probabilities = adjusted_counts / np.sum(adjusted_counts)
             
             next_key = np.random.choice(next_keys, p=probabilities)
             word = self.bound_to_word.get(next_key, "<UNK>")

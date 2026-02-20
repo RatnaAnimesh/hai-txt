@@ -103,7 +103,7 @@ def train_on_modern_english():
             
             # --- Bayesian Model Reduction (Sleep / Consolidation Phase) ---
             print("  -> Entering Sleep Phase (Consolidating Memory)...")
-            pruned_nodes = broca.sleep_cycle(prune_threshold=2)
+            pruned_nodes = broca.sleep_cycle(prune_threshold=1)
             print(f"  -> Waking Up. Pruned {pruned_nodes} weak geometric transitions. Reclaimed capacity.")
             
             print("\n  [+] DHAI-4 Dreams (Sentence Generation from Geometric Context):")
