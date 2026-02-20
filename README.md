@@ -19,8 +19,12 @@ $$ F = D_{KL}[Q(s) \parallel P(s)] - \mathbb{E}_{Q}[\ln P(o|s)] $$
 
 Where $D_{KL}$ is the Kullback-Leibler divergence. For planning into the future ($\tau > t$), the agent evaluates policies ($\pi$) by minimizing **Expected Free Energy ($G$)**:
 
-$$ G(\pi, \tau) = \mathbb{E}_{\tilde{Q}} [ \ln Q(s_\tau | \pi) - \ln P(s_\tau, o_\tau | \pi) ] $$
-$$ G(\pi, \tau) \approx \underbrace{- \mathbb{E}_{\tilde{Q}} [\ln P(o_\tau)]}_{\text{Pragmatic Value (Goal Proximity)}} + \underbrace{\mathbb{E}_{\tilde{Q}} [H(P(o_\tau | s_\tau))]}_{\text{Epistemic Value (Ambiguity)}} $$
+$$ 
+\begin{aligned}
+G(\pi, \tau) &= \mathbb{E}_{\tilde{Q}} [ \ln Q(s_\tau | \pi) - \ln P(s_\tau, o_\tau | \pi) ] \\
+&\approx \underbrace{- \mathbb{E}_{\tilde{Q}} [\ln P(o_\tau)]}_{\text{Pragmatic Value}} + \underbrace{\mathbb{E}_{\tilde{Q}} [H(P(o_\tau | s_\tau))]}_{\text{Epistemic Value}}
+\end{aligned}
+$$
 
 ---
 
@@ -65,8 +69,12 @@ $$ \text{Sim}(x \otimes y, x) \approx 0 $$
 
 **3. Bundling ($+$):**
 Element-wise addition followed by a signum threshold function. Used to create macroscopic Sets or semantic contexts.
-$$ S = x + y + z $$
-$$ V_{\text{bundled}} = \text{sgn}(S) $$
+$$ 
+\begin{aligned}
+S &= x + y + z \\
+V_{\text{bundled}} &= \text{sgn}(S)
+\end{aligned}
+$$
 *(Where $\text{sgn}(0)$ is resolved via a coin flip).*
 *Geometrical Property:* The bundle retains high similarity to all constituent vectors.
 $$ \text{Sim}(V_{\text{bundled}}, x) \gg 0 $$
@@ -91,7 +99,7 @@ $$ S_0 = R_{\text{SUBJ}} \otimes F_{\text{cat}} $$
 
 **Transition Updating:**
 Instead of a $|V| \times |V|$ dense Markov matrix, transitioning from state $S_{\tau-1}$ to $S_{\tau}$ is tracked via a sparse Hebbian graph mapping geometric neighborhoods.
-$$ \mathbf{\Gamma}(S_{\tau-1} \to S_{\tau}) \mathrel{+}= 1 $$
+$$ \mathbf{\Gamma}(S_{\tau-1} \to S_{\tau}) \leftarrow \mathbf{\Gamma}(S_{\tau-1} \to S_{\tau}) + 1 $$
 Because $S$ is composed of bundled similar vectors, any future input evaluating $\text{Sim}(S_{\text{novel}}, S_{\tau-1}) > \epsilon$ natively triggers the transition pathway. Zero-shot generalization is mathematically guaranteed by the geometry.
 
 ### Level 1: Renormalizing Event Processor (Wernicke)
