@@ -43,22 +43,39 @@ class HDC_ParietalCortex:
     def assess_transition_physics(self, state1_m: float, state1_v: float, 
                                   state2_m: float, state2_v: float) -> float:
         """
-        The Ultimate Geometric Prior: Conservation of Energy.
-        Instead of 'IF energy_in != energy_out: return False', this uses Active Inference.
-        The initial state's Energy acts as the geometric Prior (C matrix).
-        The predicted state's Energy geometrically compares itself to the Prior.
-        If it breaks physics, the Expected Free Energy spikes due to low similarity.
+        The Absolute Geometric Prior: Conservation of Energy.
+        If this spikes, the transition is physically impossible.
         """
-        # The Prior: The energy reality of the current state must be conserved
         prior_energy_vec = self.encode_kinetic_energy(state1_m, state1_v)
-        
-        # The Prediction: The energy reality of the proposed future state
         predicted_energy_vec = self.encode_kinetic_energy(state2_m, state2_v)
         
-        # Free Energy Divergence (inverse of similarity)
-        # If physics is perfectly conserved, sim = 1.0 (EFE = 0.0)
-        # If physics is broken, sim crashes (EFE spikes)
         sim = self.hd_space.similarity(prior_energy_vec, predicted_energy_vec)
+        return 1.0 - max(0, sim)
         
-        expected_free_energy = 1.0 - max(0, sim)
-        return expected_free_energy
+    def assess_contextual_prior(self, current_state_vec: np.ndarray, 
+                                contextual_boundary_vec: np.ndarray) -> float:
+        """
+        The Contextual Geometric Prior: Institutional/Environmental Rules.
+        Evaluates boundary conditions (e.g. Margin Calls) that do not break physics
+        but dictate severe environmental penalties.
+        """
+        sim = self.hd_space.similarity(current_state_vec, contextual_boundary_vec)
+        return 1.0 - sim
+
+    def measurement_operator(self, continuous_vec: np.ndarray, 
+                             discrete_vocabulary: dict) -> str:
+        """
+        Continuous-to-Symbolic Binding.
+        Collapses a continuous FHRR mathematical state into the nearest 
+        discrete semantic token for Frontal Cortex narrative planning.
+        """
+        best_match = "<UNKNOWN>"
+        highest_sim = -1.0
+        
+        for word, word_vec in discrete_vocabulary.items():
+            sim = self.hd_space.similarity(continuous_vec, word_vec)
+            if sim > highest_sim:
+                highest_sim = sim
+                best_match = word
+                
+        return best_match
