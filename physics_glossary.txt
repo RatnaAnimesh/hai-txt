@@ -1,0 +1,10 @@
+PHYSICS_VELOCITY|Velocity is distance divided by time
+PHYSICS_MOMENTUM|Momentum equals mass times velocity
+PHYSICS_ENERGY|Energy is mass times lightspeed squared
+PHYSICS_GRAVITY|Gravity is mass warping spacetime
+PHYSICS_ACCELERATION|Acceleration means velocity changes over time
+PHYSICS_FORCE|Force equals mass times acceleration
+QUANTUM_SPIN|Spin denotes intrinsic particle momentum
+QUANTUM_ENTANGLEMENT|Entanglement links distant quantum states
+PHYSICS_ENTROPY|Entropy measures total system disorder
+MATH_CALCULUS|Calculus calculates continuous change rates

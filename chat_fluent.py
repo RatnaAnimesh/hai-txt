@@ -66,14 +66,26 @@ def run_fluent_chat():
     brain = initialize_universal_engine()
     broca = HDC_SensoryInterface(10000)
     
-    # Pre-generate syntax roles for Iterative Unbinding
-    # In VSA: Role^-1 = Role 
-    role_subject = broca.hd_space.generate_atomic_vector("ROLE_SUBJECT")
-    role_action = broca.hd_space.generate_atomic_vector("ROLE_ACTION")
-    role_object = broca.hd_space.generate_atomic_vector("ROLE_OBJECT")
-    roles = [("Subject", role_subject), ("Action", role_action), ("Object", role_object)]
+    # === PHASE 11: STRUCTURED GEOMETRIC GROUNDING ===
+    # Inject fluent English bindings into the raw physics invariants
+    from grounding_matrix import build_grounded_physics_matrix
+    grounded_anchors, syntactic_roles, clean_up_memory = build_grounded_physics_matrix(broca, words_list, semantic_matrix)
     
-    physics_concepts = [k for k in brain.hd_space.item_memory.keys() if k.isupper()]
+    for anchor, tensor in grounded_anchors.items():
+        if anchor in brain.hd_space.item_memory:
+            # Overwrite the abstract physics tensor with the structurally grounded English Lexicon tensor
+            brain.hd_space.item_memory[anchor] = tensor
+            
+            
+    # For extraction, we trace back precisely through the syntactic roles built in the Grounder
+    # (Moved inside the loop to avoid iterator exhaustion)
+    
+    # CRITICAL FIX: Generate the physics concepts list AFTER the grounding overwrite
+    # Limit the search space to the grammatically grounded tensor geometries
+    physics_concepts = list(grounded_anchors.keys())
+    
+    # We must explicitly use the grounded vectors for generative unbinding
+    # (Removed grounded_memory mapping to avoid KeyErrors on non-syllabus anchors)
     
     print("\n" + "="*80)
     print("DHAI-4 FLUENT OMNISCIENCE CHAT INTERFACE ACTIVATED")
@@ -99,7 +111,7 @@ def run_fluent_chat():
             # 2. Parietal Calculus (Physics Invariant Calculation)
             results = []
             for concept_name in physics_concepts:
-                concept_vector = brain.hd_space.item_memory[concept_name]
+                concept_vector = grounded_anchors[concept_name]
                 sim = brain.hd_space.similarity(question_bundle, concept_vector)
                 results.append((concept_name, concept_vector, sim))
                 
@@ -109,22 +121,29 @@ def run_fluent_chat():
             print(f"\n[PARIETAL CORTEX]: Calculated underlying topology -> {top_physics_name}")
             
             # 3. Generative Decoder (Iterative Unbinding via Resonator Network)
-            # We unbind the selected physics vector tracking its semantic structures
             print("[GENERATIVE DECODER]: Formulating fluent neural response...")
             
+            roles = zip(["Subject", "Verb", "Object1", "Operator", "Object2"], syntactic_roles)
             sentence_parts = []
             
             for role_name, role_vec in roles:
                 # Multiply Topological Invariant by inverse syntactic role 
                 extracted_noisy_filler = broca.hd_space.bind(top_physics_vector, role_vec)
                 
-                # Resonator Network Matrix Multiplication (Dot Product is proportional to Cosine Sim in VSA)
-                # We multiply (50000 x 10000) by (10000 x 1) to get similarities against all English words instantaneously.
-                scores = np.dot(semantic_matrix, extracted_noisy_filler)
-                best_idx = np.argmax(scores)
-                best_word = words_list[best_idx]
+                # Clean-Up Memory: Filter noise by restricting dot-product search to grounded vocabulary only
+                best_word = "null"
+                best_score = -float('inf')
                 
-                sentence_parts.append(best_word)
+                for word, word_vec in clean_up_memory.items():
+                    # MUST cast to int32 before dotting, otherwise 10000 overflows int8 bounds limit (127)!
+                    score = np.dot(word_vec.astype(np.int32), extracted_noisy_filler.astype(np.int32))
+                    if score > best_score:
+                        best_score = score
+                        best_word = word
+                
+                # Filter blanks
+                if best_word != "null":
+                    sentence_parts.append(best_word)
                 
             fluent_sentence = " ".join(sentence_parts).capitalize() + "."
             print(f"\n[DHAI-4]: {fluent_sentence}\n")
