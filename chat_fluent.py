@@ -103,9 +103,20 @@ def run_fluent_chat():
             if not question.strip():
                 continue
                 
-            # 1. Broca Sensory Processing
+            # 1. Broca Sensory Processing: Look up words in the 50,000 lexicon or the clean-up cache
             words = question.replace('?', '').replace('.', '').replace(',', '').split()
-            question_vectors = [broca.hd_space.generate_atomic_vector(w.lower()) for w in words]
+            question_vectors = []
+            for w in words:
+                w_lower = w.lower()
+                if w_lower in clean_up_memory:
+                    # Explicitly use the cached geometry that grounded the Physics Tensors
+                    question_vectors.append(clean_up_memory[w_lower])
+                elif w_lower in words_list:
+                    word_idx = np.where(words_list == w_lower)[0][0]
+                    question_vectors.append(semantic_matrix[word_idx])
+                else:
+                    question_vectors.append(broca.hd_space.generate_atomic_vector(w_lower))
+                    
             question_bundle = broca.hd_space.bundle(question_vectors)
             
             # 2. Parietal Calculus (Physics Invariant Calculation)
