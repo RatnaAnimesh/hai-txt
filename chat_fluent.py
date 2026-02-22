@@ -135,7 +135,14 @@ def run_fluent_chat():
                 concept_vector = grounded_anchors[concept_name]
                 
                 # Unbind the structure into a mathematical Bag-of-Words for similarity matching
-                unbound_fillers = [broca.hd_space.bind(concept_vector, role_vec) for role_name, role_vec in roles]
+                unbound_fillers = []
+                for role_name, role_vec in roles:
+                    unbound = broca.hd_space.bind(concept_vector, role_vec)
+                    unbound_fillers.append(unbound)
+                    if role_name == "Subject":
+                        # Geometrically boost the Subject's pull in the Bag-of-Words (3x multiplier)
+                        unbound_fillers.extend([unbound, unbound])
+                        
                 concept_bow = broca.hd_space.bundle(unbound_fillers)
                 
                 sim = brain.hd_space.similarity(question_bundle, concept_bow)
