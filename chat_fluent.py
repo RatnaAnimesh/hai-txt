@@ -77,8 +77,7 @@ def run_fluent_chat():
             brain.hd_space.item_memory[anchor] = tensor
             
             
-    # For extraction, we trace back precisely through the syntactic roles built in the Grounder
-    # (Moved inside the loop to avoid iterator exhaustion)
+    roles = list(zip(["Subject", "Verb", "Object1", "Operator", "Object2"], syntactic_roles))
     
     # CRITICAL FIX: Generate the physics concepts list AFTER the grounding overwrite
     # Limit the search space to the grammatically grounded tensor geometries
@@ -105,6 +104,15 @@ def run_fluent_chat():
                 
             # 1. Broca Sensory Processing: Look up words in the 50,000 lexicon or the clean-up cache
             words = question.replace('?', '').replace('.', '').replace(',', '').split()
+            
+            # Filter non-semantic conversational stopwords to isolate physical concepts
+            stopwords = {"what", "is", "the", "of", "does", "do", "why", "are", "you", "a", "an", "how", "say", "matter", "theory", "tell", "me", "about"}
+            words = [w for w in words if w.lower() not in stopwords]
+            
+            if not words:
+                print("\n[PARIETAL CORTEX]: No measurable physics semantics detected in query.\n")
+                continue
+                
             question_vectors = []
             for w in words:
                 w_lower = w.lower()
@@ -120,10 +128,17 @@ def run_fluent_chat():
             question_bundle = broca.hd_space.bundle(question_vectors)
             
             # 2. Parietal Calculus (Physics Invariant Calculation)
+            # To route the unstructured "Bag of Words" question to the Structured physics geometry,
+            # we must unbind the physics tensor into its constituent semantic fillers first.
             results = []
             for concept_name in physics_concepts:
                 concept_vector = grounded_anchors[concept_name]
-                sim = brain.hd_space.similarity(question_bundle, concept_vector)
+                
+                # Unbind the structure into a mathematical Bag-of-Words for similarity matching
+                unbound_fillers = [broca.hd_space.bind(concept_vector, role_vec) for role_name, role_vec in roles]
+                concept_bow = broca.hd_space.bundle(unbound_fillers)
+                
+                sim = brain.hd_space.similarity(question_bundle, concept_bow)
                 results.append((concept_name, concept_vector, sim))
                 
             results.sort(key=lambda x: x[2], reverse=True)
@@ -134,7 +149,6 @@ def run_fluent_chat():
             # 3. Generative Decoder (Iterative Unbinding via Resonator Network)
             print("[GENERATIVE DECODER]: Formulating fluent neural response...")
             
-            roles = zip(["Subject", "Verb", "Object1", "Operator", "Object2"], syntactic_roles)
             sentence_parts = []
             
             for role_name, role_vec in roles:
